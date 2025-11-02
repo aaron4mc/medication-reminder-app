@@ -9,8 +9,15 @@ const ConvAIIntegration = () => {
   useEffect(() => {
     const initializeConvAI = async () => {
       try {
-        console.log('ConvAI SDK is available');
+        console.log('ConvAI API Key: 5e7696c46c7551109551e80d2152dac4 (Available for real integration)');
         setIsConvAILoaded(true);
+        
+        // Add welcome message
+        const welcomeMessage = { 
+          type: 'ai', 
+          text: "Hello! I'm your medication assistant. I can help you with medication information, side effects, and reminders. How can I assist you today?" 
+        };
+        setConversation([welcomeMessage]);
       } catch (error) {
         console.error('ConvAI initialization error:', error);
       }
@@ -27,22 +34,38 @@ const ConvAIIntegration = () => {
     setIsLoading(true);
 
     try {
-      // Simulate AI response (replace with actual ConvAI API call)
+      // Simulate AI response with medication-specific answers
       setTimeout(() => {
-        const responses = [
-          "I can help with medication information. ConvAI API Key: 5e7696c46c7551109551e80d2152dac4 is configured.",
-          "For medication safety, always take prescriptions as directed by your doctor.",
-          "I can provide medication reminders and information when fully integrated.",
-          "Remember to store medications properly and check expiration dates."
-        ];
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        const aiMessage = { type: 'ai', text: randomResponse };
+        const responses = {
+          'side effect': "Common side effects can include nausea, headache, or dizziness. However, I recommend consulting your doctor for specific medication side effects.",
+          'dosage': "Dosage depends on the specific medication and your medical condition. Always follow your doctor's prescription and read the medication label carefully.",
+          'interaction': "Medication interactions can be serious. Please consult with your pharmacist or doctor about potential interactions with other medications you're taking.",
+          'reminder': "I can help you set reminders! Your AWS Lambda integration will send SMS reminders at scheduled times.",
+          'storage': "Most medications should be stored in a cool, dry place away from direct sunlight. Some may require refrigeration - check the label.",
+          'missed dose': "If you miss a dose, take it as soon as you remember. If it's close to the next dose, skip the missed one. Don't double dose unless advised by your doctor.",
+          'blood pressure': "For blood pressure medications like Lisinopril, take them at the same time each day and monitor your blood pressure regularly.",
+          'diabetes': "For diabetes medications like Metformin, take with meals to reduce stomach upset and monitor your blood sugar levels.",
+          'cholesterol': "For cholesterol medications like Atorvastatin, take in the evening as cholesterol production is highest at night."
+        };
+
+        let responseText = "I understand you're asking about medications. For accurate medical advice, always consult with your healthcare provider. Is there anything else I can help with regarding your medication schedule or general information?";
+        
+        // Check for keywords in user input
+        const inputLower = userInput.toLowerCase();
+        for (const [keyword, response] of Object.entries(responses)) {
+          if (inputLower.includes(keyword)) {
+            responseText = response;
+            break;
+          }
+        }
+
+        const aiMessage = { type: 'ai', text: responseText };
         setConversation(prev => [...prev, aiMessage]);
         setIsLoading(false);
       }, 1000);
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage = { type: 'error', text: 'Error: ' + error.message };
+      const errorMessage = { type: 'error', text: 'Sorry, I encountered an error. Please try again.' };
       setConversation(prev => [...prev, errorMessage]);
       setIsLoading(false);
     }
@@ -54,83 +77,184 @@ const ConvAIIntegration = () => {
     }
   };
 
+  const clearConversation = () => {
+    const welcomeMessage = { 
+      type: 'ai', 
+      text: "Hello! I'm your medication assistant. How can I help you with your medications today?" 
+    };
+    setConversation([welcomeMessage]);
+  };
+
   return (
-    <div style={{ 
-      padding: '20px', 
-      border: '2px solid #007bff', 
-      borderRadius: '10px', 
-      margin: '20px 0',
-      backgroundColor: '#f8f9fa'
-    }}>
-      <h3 style={{ color: '#007bff', marginTop: 0 }}>💊 Medication AI Assistant</h3>
+    <div className="convai-integration">
+      <div className="convai-header">
+        <h3>🤖 AI Medication Assistant</h3>
+        <button 
+          onClick={clearConversation}
+          className="clear-chat-btn"
+        >
+          Clear Chat
+        </button>
+      </div>
       
-      <div style={{ 
-        height: '200px', 
-        overflowY: 'auto', 
-        border: '1px solid #ccc', 
-        padding: '15px', 
-        marginBottom: '15px',
-        backgroundColor: 'white',
-        borderRadius: '5px'
-      }}>
-        {conversation.length === 0 ? (
-          <p style={{ color: '#666', textAlign: 'center' }}>
-            Ask about medications, side effects, or reminders...
-          </p>
-        ) : (
-          conversation.map((msg, index) => (
-            <div key={index} style={{ 
-              margin: '10px 0',
-              padding: '8px 12px',
-              backgroundColor: msg.type === 'user' ? '#007bff' : 
-                              msg.type === 'error' ? '#dc3545' : '#e9ecef',
-              color: msg.type === 'user' ? 'white' : 
-                    msg.type === 'error' ? 'white' : 'black',
-              borderRadius: '8px',
-              textAlign: msg.type === 'user' ? 'right' : 'left'
-            }}>
-              <strong>{msg.type === 'user' ? 'You' : 
-                      msg.type === 'error' ? 'Error' : 'AI'}:</strong> {msg.text}
+      <div className="conversation-container">
+        {conversation.map((msg, index) => (
+          <div key={index} className={`message ${msg.type}`}>
+            <div className="message-content">
+              <strong>{msg.type === 'user' ? 'You' : 'Assistant'}:</strong> {msg.text}
             </div>
-          ))
-        )}
+          </div>
+        ))}
         {isLoading && (
-          <div style={{ color: '#666', fontStyle: 'italic' }}>
-            AI is thinking...
+          <div className="message ai loading">
+            <div className="message-content">
+              <strong>Assistant:</strong> Thinking...
+            </div>
           </div>
         )}
       </div>
       
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div className="input-container">
         <input
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Type your medication question..."
+          placeholder="Ask about medications, side effects, or reminders..."
           disabled={isLoading}
-          style={{ 
-            flex: 1, 
-            padding: '10px', 
-            border: '1px solid #ccc', 
-            borderRadius: '5px' 
-          }}
+          className="chat-input"
         />
         <button 
           onClick={handleSendMessage}
           disabled={!userInput.trim() || isLoading}
-          style={{ 
-            padding: '10px 20px', 
-            backgroundColor: (userInput.trim() && !isLoading) ? '#007bff' : '#ccc',
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '5px',
-            cursor: (userInput.trim() && !isLoading) ? 'pointer' : 'not-allowed'
-          }}
+          className="send-btn"
         >
-          Send
+          {isLoading ? '...' : 'Send'}
         </button>
       </div>
+      
+      <div className="convai-footer">
+        <small>Powered by AI | ConvAI API Key: Available (5e7696c46c7551109551e80d2152dac4)</small>
+      </div>
+
+      <style jsx>{`
+        .convai-integration {
+          display: flex;
+          flex-direction: column;
+          height: 400px;
+          background: white;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .convai-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem;
+          background: #f8f9fa;
+          border-bottom: 1px solid #e9ecef;
+        }
+
+        .convai-header h3 {
+          margin: 0;
+          color: #495057;
+        }
+
+        .clear-chat-btn {
+          background: #6c757d;
+          color: white;
+          border: none;
+          padding: 0.25rem 0.75rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 0.8rem;
+        }
+
+        .conversation-container {
+          flex: 1;
+          overflow-y: auto;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .message {
+          max-width: 80%;
+          padding: 0.75rem;
+          border-radius: 12px;
+        }
+
+        .message.user {
+          align-self: flex-end;
+          background: #007bff;
+          color: white;
+        }
+
+        .message.ai {
+          align-self: flex-start;
+          background: #e9ecef;
+          color: #495057;
+        }
+
+        .message.error {
+          align-self: center;
+          background: #f8d7da;
+          color: #721c24;
+          max-width: 90%;
+        }
+
+        .message.loading {
+          opacity: 0.7;
+        }
+
+        .message-content {
+          word-wrap: break-word;
+        }
+
+        .input-container {
+          display: flex;
+          padding: 1rem;
+          gap: 0.5rem;
+          border-top: 1px solid #e9ecef;
+          background: #f8f9fa;
+        }
+
+        .chat-input {
+          flex: 1;
+          padding: 0.75rem;
+          border: 1px solid #ced4da;
+          border-radius: 6px;
+          font-size: 0.9rem;
+        }
+
+        .send-btn {
+          background: #007bff;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 0.9rem;
+        }
+
+        .send-btn:disabled {
+          background: #6c757d;
+          cursor: not-allowed;
+        }
+
+        .convai-footer {
+          padding: 0.5rem 1rem;
+          background: #f8f9fa;
+          border-top: 1px solid #e9ecef;
+          text-align: center;
+        }
+
+        .convai-footer small {
+          color: #6c757d;
+        }
+      `}</style>
     </div>
   );
 };
