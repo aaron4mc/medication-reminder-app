@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ConvAIIntegration from './components/ConvAIIntegration.js';
 import MedicationManager from './components/MedicationManager.js';
 import NotificationsPanel from './components/NotificationsPanel.js';
+import EmergencySafety from './components/EmergencySafety.js';
 import awsMedicationAPI from './utils/awsMedicationAPI.js';
 import './App.css';
 
@@ -50,16 +51,6 @@ function App() {
 
     loadMedications();
   }, []);
-
-  const requestNotificationPermission = () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          console.log('✅ Notification permission granted');
-        }
-      });
-    }
-  };
 
   const markAsTaken = async (medicationId) => {
     const medication = medications.find(med => 
@@ -150,12 +141,6 @@ function App() {
               AWS API: {apiStatus === 'online' ? '✅ Connected' : '❌ Offline - Using local storage'}
             </div>
           </div>
-          <button 
-            className="notification-permission-btn"
-            onClick={requestNotificationPermission}
-          >
-            🔔 Enable Notifications
-          </button>
         </div>
         
         <nav className="app-nav">
@@ -170,6 +155,12 @@ function App() {
             onClick={() => setActiveTab('assistant')}
           >
             🤖 AI Assistant
+          </button>
+          <button 
+            className={`nav-btn ${activeTab === 'safety' ? 'active' : ''}`}
+            onClick={() => setActiveTab('safety')}
+          >
+            🚨 Emergency & Safety
           </button>
           <button 
             className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`}
@@ -203,6 +194,12 @@ function App() {
           {activeTab === 'assistant' && (
             <div className="assistant-tab">
               <ConvAIIntegration />
+            </div>
+          )}
+          
+          {activeTab === 'safety' && (
+            <div className="safety-tab">
+              <EmergencySafety />
             </div>
           )}
           
