@@ -71,3 +71,10 @@ git clone https://github.com/yourusername/medication-reminder-app.git
 # Open in browser
 cd medication-reminder-app
 open index.html
+
+🔧 Configuration
+Environment Variables
+The app uses the following configuration:
+
+const API_URL = 'https://1a5a28n6t2.execute-api.ap-southeast-2.amazonaws.com/prod';
+const USER_ID = 'test_user_123'; // Default test user
