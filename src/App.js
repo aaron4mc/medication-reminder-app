@@ -2,125 +2,131 @@ import React, { useState, useEffect } from 'react';
 import ConvAIIntegration from './components/ConvAIIntegration.js';
 import MedicationManager from './components/MedicationManager.js';
 import NotificationsPanel from './components/NotificationsPanel.js';
+import awsMedicationAPI from './utils/awsMedicationAPI.js';
 import './App.css';
 
 function App() {
   const [medications, setMedications] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('medications');
+  const [apiStatus, setApiStatus] = useState('checking');
 
-  // Load medications from localStorage on component mount
+  // Load medications from AWS API on component mount
   useEffect(() => {
-    const savedMeds = localStorage.getItem('medications');
-    if (savedMeds) {
-      setMedications(JSON.parse(savedMeds));
-    } else {
-      // Sample medications if none exist
-      const sampleMeds = [
-        { 
-          id: 1, 
-          name: 'Aspirin', 
-          dosage: '100mg', 
-          times: ['08:00', '20:00'], 
-          taken: false,
-          type: 'pill'
-        },
-        { 
-          id: 2, 
-          name: 'Vitamin D', 
-          dosage: '1000IU', 
-          times: ['12:00'], 
-          taken: false,
-          type: 'supplement'
-        }
-      ];
-      setMedications(sampleMeds);
-      localStorage.setItem('medications', JSON.stringify(sampleMeds));
-    }
-  }, []);
-
-  // Save medications to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('medications', JSON.stringify(medications));
-  }, [medications]);
-
-  // Check for medication reminders
-  useEffect(() => {
-    const checkMedicationTimes = () => {
-      const now = new Date();
-      const currentTime = now.toTimeString().slice(0, 5);
-      const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
-
-      medications.forEach(med => {
-        if (med.times.includes(currentTime) && !med.taken) {
-          // Check if notification already exists
-          const existingNotification = notifications.find(
-            n => n.medicationId === med.id && n.time === currentTime
-          );
+    const loadMedications = async () => {
+      try {
+        console.log('🔄 Loading medications from AWS API...');
+        const result = await awsMedicationAPI.getMedications();
+        
+        if (result.status === 'success') {
+          console.log(`✅ Loaded ${result.medications.length} medications from ${result.source || 'API'}`);
+          setMedications(result.medications);
+          setApiStatus('online');
           
-          if (!existingNotification) {
-            const newNotification = {
-              id: Date.now() + Math.random(),
-              medicationId: med.id,
-              message: `Time to take ${med.name} (${med.dosage})`,
-              type: 'medication',
-              time: currentTime,
-              timestamp: new Date().toISOString()
-            };
-            
-            setNotifications(prev => [...prev, newNotification]);
-            
-            // Browser notification
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('💊 Medication Reminder', {
-                body: newNotification.message,
-                icon: '/favicon.ico',
-                tag: `med-reminder-${med.id}-${currentTime}`
-              });
+          // Start notification checker
+          awsMedicationAPI.startNotificationChecker(result.medications, (dueMeds) => {
+            if (dueMeds.length > 0) {
+              const newNotifications = dueMeds.map(med => ({
+                id: Date.now() + Math.random(),
+                medicationId: med.medication_id || med.id,
+                message: `Time to take ${med.medication_name || med.name}${med.dosage ? ` (${med.dosage})` : ''}`,
+                type: 'medication',
+                time: new Date().toTimeString().slice(0, 5),
+                timestamp: new Date().toISOString()
+              }));
+              
+              setNotifications(prev => [...prev, ...newNotifications]);
+              
+              // Show browser notifications
+              awsMedicationAPI.showBrowserNotifications(dueMeds);
             }
-          }
+          });
         }
-      });
+      } catch (error) {
+        console.error('❌ Error loading medications:', error);
+        setApiStatus('offline');
+      }
     };
 
-    // Check immediately
-    checkMedicationTimes();
-    
-    // Set up interval to check every minute
-    const interval = setInterval(checkMedicationTimes, 60000);
-    return () => clearInterval(interval);
-  }, [medications, notifications]);
+    loadMedications();
+  }, []);
 
   const requestNotificationPermission = () => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
-          console.log('Notification permission granted');
+          console.log('✅ Notification permission granted');
         }
       });
     }
   };
 
-  const markAsTaken = (medicationId) => {
-    setMedications(prev => 
-      prev.map(med => 
-        med.id === medicationId ? { ...med, taken: true } : med
-      )
+  const markAsTaken = async (medicationId) => {
+    const medication = medications.find(med => 
+      med.medication_id === medicationId || med.id === medicationId
     );
     
-    // Remove related notifications
-    setNotifications(prev => 
-      prev.filter(notif => notif.medicationId !== medicationId)
-    );
+    if (medication) {
+      try {
+        // Log to AWS API
+        await awsMedicationAPI.logMedicationAction({
+          medication_name: medication.medication_name || medication.name,
+          status: 'taken'
+        });
+      } catch (error) {
+        console.error('Error logging to AWS:', error);
+        // Continue anyway for better UX
+      }
+      
+      // Update local state
+      setMedications(prev => 
+        prev.map(med => 
+          (med.medication_id === medicationId || med.id === medicationId) 
+            ? { ...med, taken: true, last_taken: new Date().toISOString() }
+            : med
+        )
+      );
+      
+      // Remove related notifications
+      setNotifications(prev => 
+        prev.filter(notif => notif.medicationId !== medicationId)
+      );
+    }
   };
 
-  const addMedication = (newMed) => {
-    const medication = {
-      ...newMed,
-      id: Date.now(),
-      taken: false
-    };
-    setMedications(prev => [...prev, medication]);
+  const addMedication = async (newMed) => {
+    try {
+      console.log('🔄 Adding medication to AWS...', newMed);
+      const result = await awsMedicationAPI.addMedication({
+        medication_name: newMed.medication_name || newMed.name,
+        dosage: newMed.dosage,
+        times: newMed.times,
+        phone_number: newMed.phone_number
+      });
+      
+      if (result.status === 'success') {
+        console.log('✅ Medication added successfully:', result.medication);
+        setMedications(prev => [...prev, result.medication]);
+        setApiStatus('online');
+        return true;
+      }
+    } catch (error) {
+      console.error('❌ Error adding medication:', error);
+      setApiStatus('offline');
+      
+      // Add locally as fallback
+      const localMedication = {
+        ...newMed,
+        id: `local_${Date.now()}`,
+        medication_id: `local_${Date.now()}`,
+        taken: false,
+        source: 'local_cache',
+        created_at: new Date().toISOString()
+      };
+      
+      setMedications(prev => [...prev, localMedication]);
+      return true;
+    }
   };
 
   const removeNotification = (notificationId) => {
@@ -139,7 +145,10 @@ function App() {
         <div className="header-content">
           <div className="header-title">
             <h1>💊 Medication Reminder</h1>
-            <p>Your AI-powered health companion</p>
+            <p>Your AWS-powered health companion</p>
+            <div className={`api-status ${apiStatus}`}>
+              AWS API: {apiStatus === 'online' ? '✅ Connected' : '❌ Offline - Using local storage'}
+            </div>
           </div>
           <button 
             className="notification-permission-btn"
@@ -209,10 +218,42 @@ function App() {
                   <div className="stat-label">Medications Taken</div>
                 </div>
                 <div className="stat-card">
+                  <h3>AWS Status</h3>
+                  <div className="stat-value">
+                    {apiStatus === 'online' ? '✅' : '❌'}
+                  </div>
+                  <div className="stat-label">
+                    {apiStatus === 'online' ? 'Connected' : 'Offline'}
+                  </div>
+                </div>
+                <div className="stat-card">
                   <h3>Active Reminders</h3>
                   <div className="stat-value">{notifications.length}</div>
                   <div className="stat-label">Pending</div>
                 </div>
+              </div>
+              
+              <div className="recent-activity">
+                <h3>Recent Activity</h3>
+                {medications.filter(m => m.last_taken).length === 0 ? (
+                  <p className="no-activity">No recent medication activity</p>
+                ) : (
+                  <div className="activity-list">
+                    {medications
+                      .filter(m => m.last_taken)
+                      .sort((a, b) => new Date(b.last_taken) - new Date(a.last_taken))
+                      .slice(0, 5)
+                      .map(med => (
+                        <div key={med.medication_id || med.id} className="activity-item">
+                          <span className="activity-med">{med.medication_name || med.name}</span>
+                          <span className="activity-time">
+                            Taken at {new Date(med.last_taken).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -220,7 +261,7 @@ function App() {
       </main>
       
       <footer className="app-footer">
-        <p>Medication Reminder App with ConvAI Integration | Stay Healthy! 💪</p>
+        <p>Medication Reminder App with AWS Lambda & ConvAI Integration | Stay Healthy! 💪</p>
       </footer>
     </div>
   );

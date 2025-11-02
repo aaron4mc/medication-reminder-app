@@ -598,3 +598,144 @@ body {
     text-align: center;
   }
 }
+
+/* Recent Activity Section */
+.recent-activity {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.recent-activity h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.no-activity {
+  color: #6c757d;
+  text-align: center;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 6px;
+  border-left: 4px solid #28a745;
+}
+
+.activity-med {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.activity-time {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* API Status in Header */
+.header-title .api-status {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Loading States */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: ' (Loading...)';
+  font-style: italic;
+}
+
+/* Test Data Button */
+.test-data-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.test-data-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(238, 90, 36, 0.4);
+}
+
+.test-data-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Clear Cache Button */
+.clear-cache-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  margin-left: 0.5rem;
+}
+
+.clear-cache-btn:hover {
+  background: #5a6268;
+}
+
+/* AWS ID Display */
+.aws-id {
+  font-size: 0.7rem;
+  color: #6c757d;
+  margin: 0.25rem 0 0 0;
+  font-family: monospace;
+}
+
+/* Empty State Actions */
+.empty-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.add-first-btn.secondary {
+  background: #6c757d;
+}
+
+.add-first-btn.secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Header Actions Responsive */
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .test-data-btn,
+  .notification-btn,
+  .add-med-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
