@@ -35,18 +35,6 @@ A modern web application for managing medication schedules, tracking adherence, 
 - **SNS** - SMS notifications
 - **CloudWatch** - Logging and monitoring
 
-## 🏗️ Architecture
-Frontend (GitHub Pages)
-↓
-API Gateway (REST API)
-↓
-Lambda Functions
-↓
-DynamoDB (Storage)
-↓
-SNS (SMS Notifications)
-
-
 ## 📋 API Endpoints
 
 | Method | Endpoint | Description |
@@ -71,10 +59,23 @@ git clone https://github.com/yourusername/medication-reminder-app.git
 # Open in browser
 cd medication-reminder-app
 open index.html
+```
 
-🔧 Configuration
-Environment Variables
-The app uses the following configuration:
+## 🏗️ Architecture
 
-const API_URL = 'https://1a5a28n6t2.execute-api.ap-southeast-2.amazonaws.com/prod';
-const USER_ID = 'test_user_123'; // Default test user
+```mermaid
+graph TB
+    A[Frontend<br>GitHub Pages] --> B[API Gateway<br>REST API]
+    B --> C[Lambda Functions<br>Serverless Compute]
+    C --> D[DynamoDB<br>NoSQL Database]
+    C --> E[SNS<br>SMS Notifications]
+    F[CloudWatch Events] --> C
+    C --> G[CloudWatch<br>Logging & Monitoring]
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+```
+
