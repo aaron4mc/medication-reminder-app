@@ -8,7 +8,7 @@ A modern web application for managing medication schedules, tracking adherence, 
 
 ## 🚀 Live Demo
 
-**[https://yourusername.github.io/medication-reminder-app](https://yourusername.github.io/medication-reminder-app)**
+**[https://aaron4mc.github.io/medication-reminder-app](https://aaron4mc.github.io/medication-reminder-app)**
 
 ## ✨ Features
 
