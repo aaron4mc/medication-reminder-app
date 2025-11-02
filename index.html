@@ -1,123 +1,192 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2822
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medication Reminder</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .medication { 
+            background: white; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+        .taken { border-left-color: #28a745; }
+        .missed { border-left-color: #dc3545; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #0056b3; }
+        button.taken { background: #28a745; }
+        button.missed { background: #dc3545; }
+        h1 { color: #333; text-align: center; }
+        .time-badge { 
+            background: #007bff; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 0 5px;
+        }
+        #loading { text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h1>💊 My Medication Schedule</h1>
+    
+    <div id="loading">Loading medications...</div>
+    
+    <div id="medications" style="display: none;">
+        <h2>Today's Medications</h2>
+        <div id="schedule"></div>
+        
+        <h2>All My Medications</h2>
+        <div id="allMeds"></div>
+        
+        <h3>Quick Log</h3>
+        <select id="medSelect">
+            <option value="">Select medication</option>
+        </select>
+        <button class="taken" onclick="logMedication('taken')">✅ Taken</button>
+        <button class="missed" onclick="logMedication('missed')">❌ Missed</button>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #e9ecef; border-radius: 5px;">
+            <h4>📊 Your Medication Summary</h4>
+            <p>Total Medications: <span id="medCount">0</span></p>
+            <p>User ID: <code>test_user_123</code></p>
+        </div>
+    </div>
 
-\f0\fs24 \cf0 <!DOCTYPE html>\
-<html lang="en">\
-<head>\
-    <meta charset="UTF-8">\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
-    <title>Medication Reminder</title>\
-    <style>\
-        body \{ font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; \}\
-        .medication \{ background: #f0f8ff; padding: 15px; margin: 10px 0; border-radius: 8px; \}\
-        .taken \{ background: #d4edda; \}\
-        .missed \{ background: #f8d7da; \}\
-        button \{ background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; \}\
-        button:hover \{ background: #0056b3; \}\
-    </style>\
-</head>\
-<body>\
-    <h1>\uc0\u55357 \u56458  My Medication Schedule</h1>\
-    \
-    <div id="loading">Loading medications...</div>\
-    \
-    <div id="medications" style="display: none;">\
-        <h2>Today's Schedule</h2>\
-        <div id="schedule"></div>\
-        \
-        <h2>All Medications</h2>\
-        <div id="allMeds"></div>\
-        \
-        <h3>Log Medication</h3>\
-        <select id="medSelect">\
-            <option value="">Select medication</option>\
-        </select>\
-        <button onclick="logMedication('taken')">\uc0\u9989  Taken</button>\
-        <button onclick="logMedication('missed')">\uc0\u10060  Missed</button>\
-    </div>\
-\
-    <script>\
-        const API_URL = 'https://1a5a28n6t2.execute-api.ap-southeast-2.amazonaws.com/prod';\
-        \
-        // Load medications on page load\
-        window.onload = function() \{\
-            loadMedications();\
-        \};\
-\
-        async function loadMedications() \{\
-            try \{\
-                const response = await fetch(`$\{API_URL\}/medications?user_id=test_user_123`);\
-                const data = await response.json();\
-                \
-                if (data.status === 'success') \{\
-                    displayMedications(data.medications);\
-                    document.getElementById('loading').style.display = 'none';\
-                    document.getElementById('medications').style.display = 'block';\
-                \}\
-            \} catch (error) \{\
-                document.getElementById('loading').innerHTML = 'Error loading medications';\
-                console.error('Error:', error);\
-            \}\
-        \}\
-\
-        function displayMedications(medications) \{\
-            const scheduleDiv = document.getElementById('schedule');\
-            const allMedsDiv = document.getElementById('allMeds');\
-            const medSelect = document.getElementById('medSelect');\
-            \
-            scheduleDiv.innerHTML = '';\
-            allMedsDiv.innerHTML = '';\
-            medSelect.innerHTML = '<option value="">Select medication</option>';\
-            \
-            medications.forEach(med => \{\
-                // Add to dropdown\
-                medSelect.innerHTML += `<option value="$\{med.medication_name\}">$\{med.medication_name\}</option>`;\
-                \
-                // Display medication card\
-                const medCard = `\
-                    <div class="medication">\
-                        <h3>$\{med.medication_name\} $\{med.dosage\}</h3>\
-                        <p>\uc0\u55357 \u56656  Times: $\{med.times.join(', ')\}</p>\
-                        <p>\uc0\u55357 \u56517  Days: $\{med.days_of_week.join(', ')\}</p>\
-                        <p>\uc0\u55356 \u57104  Timezone: $\{med.timezone\}</p>\
-                    </div>\
-                `;\
-                allMedsDiv.innerHTML += medCard;\
-            \});\
-        \}\
-\
-        async function logMedication(status) \{\
-            const medName = document.getElementById('medSelect').value;\
-            if (!medName) \{\
-                alert('Please select a medication');\
-                return;\
-            \}\
-\
-            try \{\
-                const response = await fetch(`$\{API_URL\}/logs`, \{\
-                    method: 'POST',\
-                    headers: \{ 'Content-Type': 'application/json' \},\
-                    body: JSON.stringify(\{\
-                        user_id: 'test_user_123',\
-                        medication_name: medName,\
-                        status: status,\
-                        confirmation_method: 'web'\
-                    \})\
-                \});\
-                \
-                const data = await response.json();\
-                if (data.status === 'success') \{\
-                    alert(`\uc0\u9989  Logged $\{medName\} as $\{status\}`);\
-                \}\
-            \} catch (error) \{\
-                alert('Error logging medication');\
-                console.error('Error:', error);\
-            \}\
-        \}\
-    </script>\
-</body>\
-</html>}
+    <script>
+        const API_URL = 'https://1a5a28n6t2.execute-api.ap-southeast-2.amazonaws.com/prod';
+        
+        // Load medications when page loads
+        window.onload = function() {
+            loadMedications();
+        };
+
+        async function loadMedications() {
+            try {
+                console.log('Loading medications...');
+                const response = await fetch(`${API_URL}/medications?user_id=test_user_123`);
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                if (data.status === 'success') {
+                    displayMedications(data.medications);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('medications').style.display = 'block';
+                } else {
+                    document.getElementById('loading').innerHTML = 'Error: ' + (data.error || 'Unknown error');
+                }
+            } catch (error) {
+                document.getElementById('loading').innerHTML = '❌ Error loading medications. Check console for details.';
+                console.error('Error:', error);
+            }
+        }
+
+        function displayMedications(medications) {
+            const scheduleDiv = document.getElementById('schedule');
+            const allMedsDiv = document.getElementById('allMeds');
+            const medSelect = document.getElementById('medSelect');
+            const medCount = document.getElementById('medCount');
+            
+            // Update medication count
+            medCount.textContent = medications.length;
+            
+            // Clear existing content
+            scheduleDiv.innerHTML = '';
+            allMedsDiv.innerHTML = '';
+            medSelect.innerHTML = '<option value="">Select medication</option>';
+            
+            if (medications.length === 0) {
+                scheduleDiv.innerHTML = '<p>No medications found.</p>';
+                allMedsDiv.innerHTML = '<p>No medications scheduled.</p>';
+                return;
+            }
+            
+            medications.forEach(med => {
+                // Add to dropdown for quick logging
+                medSelect.innerHTML += `<option value="${med.medication_name}">${med.medication_name} (${med.dosage})</option>`;
+                
+                // Create time badges
+                const timeBadges = med.times.map(time => 
+                    `<span class="time-badge">${time}</span>`
+                ).join('');
+                
+                // Display medication card
+                const medCard = `
+                    <div class="medication">
+                        <h3>${med.medication_name} - ${med.dosage}</h3>
+                        <p>🕐 ${timeBadges}</p>
+                        <p>📅 ${med.days_of_week.join(', ')}</p>
+                        <p>🌐 ${med.timezone}</p>
+                        <div>
+                            <button onclick="logMedicationFor('${med.medication_name}', 'taken')">✅ Taken</button>
+                            <button onclick="logMedicationFor('${med.medication_name}', 'missed')">❌ Missed</button>
+                        </div>
+                    </div>
+                `;
+                allMedsDiv.innerHTML += medCard;
+            });
+        }
+
+        function logMedicationFor(medName, status) {
+            document.getElementById('medSelect').value = medName;
+            logMedication(status);
+        }
+
+        async function logMedication(status) {
+            const medName = document.getElementById('medSelect').value;
+            if (!medName) {
+                alert('Please select a medication first');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/logs`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: 'test_user_123',
+                        medication_name: medName,
+                        status: status,
+                        confirmation_method: 'web'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert(`✅ Success! Logged ${medName} as ${status}`);
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Network error - check console for details');
+                console.error('Error logging medication:', error);
+            }
+        }
+
+        // Refresh medications every 30 seconds
+        setInterval(loadMedications, 30000);
+    </script>
+</body>
+</html>
