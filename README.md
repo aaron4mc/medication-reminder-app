@@ -36,3 +36,38 @@ A modern web application for managing medication schedules, tracking adherence, 
 - **CloudWatch** - Logging and monitoring
 
 ## 🏗️ Architecture
+Frontend (GitHub Pages)
+↓
+API Gateway (REST API)
+↓
+Lambda Functions
+↓
+DynamoDB (Storage)
+↓
+SNS (SMS Notifications)
+
+
+## 📋 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/medications?user_id={id}` | Get user's medication schedule |
+| `POST` | `/medications` | Add new medication to schedule |
+| `POST` | `/logs` | Log medication action (taken/missed) |
+
+## 🚀 Quick Start
+
+### Using the Web App
+1. Visit the [live demo](https://yourusername.github.io/medication-reminder-app)
+2. View your current medication schedule
+3. Log medications as taken or missed
+4. Add new medications using the form
+
+### Local Development
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/medication-reminder-app.git
+
+# Open in browser
+cd medication-reminder-app
+open index.html
