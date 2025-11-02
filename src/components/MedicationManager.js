@@ -111,12 +111,6 @@ const MedicationManager = ({ medications, onMarkAsTaken, onAddMedication, onNoti
     return times[0]; // Return first time tomorrow
   };
 
-  const requestNotificationPermission = () => {
-    if ('Notification' in window) {
-      Notification.requestPermission();
-    }
-  };
-
   const clearCache = () => {
     awsMedicationAPI.clearCache();
     alert('Local cache cleared. Page will reload.');
@@ -144,12 +138,6 @@ const MedicationManager = ({ medications, onMarkAsTaken, onAddMedication, onNoti
             disabled={addingTestData || loading}
           >
             {addingTestData ? 'Adding Test Data...' : '📝 Add Test Data'}
-          </button>
-          <button 
-            className="notification-btn"
-            onClick={requestNotificationPermission}
-          >
-            🔔 Enable Notifications
           </button>
           <button 
             className="add-med-btn"
