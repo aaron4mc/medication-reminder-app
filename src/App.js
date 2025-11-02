@@ -3,6 +3,7 @@ import ConvAIIntegration from './components/ConvAIIntegration.js';
 import MedicationManager from './components/MedicationManager.js';
 import NotificationsPanel from './components/NotificationsPanel.js';
 import EmergencySafety from './components/EmergencySafety.js';
+import DailyLivingSupport from './components/DailyLivingSupport.js';
 import awsMedicationAPI from './utils/awsMedicationAPI.js';
 import './App.css';
 
@@ -157,6 +158,12 @@ function App() {
             🤖 AI Assistant
           </button>
           <button 
+            className={`nav-btn ${activeTab === 'daily_living' ? 'active' : ''}`}
+            onClick={() => setActiveTab('daily_living')}
+          >
+            🌱 Daily Living
+          </button>
+          <button 
             className={`nav-btn ${activeTab === 'safety' ? 'active' : ''}`}
             onClick={() => setActiveTab('safety')}
           >
@@ -194,6 +201,12 @@ function App() {
           {activeTab === 'assistant' && (
             <div className="assistant-tab">
               <ConvAIIntegration />
+            </div>
+          )}
+          
+          {activeTab === 'daily_living' && (
+            <div className="daily-living-tab">
+              <DailyLivingSupport />
             </div>
           )}
           
