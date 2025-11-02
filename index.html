@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medication Reminder</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .medication { background: #f0f8ff; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .taken { background: #d4edda; }
+        .missed { background: #f8d7da; }
+        button { background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>💊 My Medication Schedule</h1>
+    
+    <div id="loading">Loading medications...</div>
+    
+    <div id="medications" style="display: none;">
+        <h2>Today's Schedule</h2>
+        <div id="schedule"></div>
+        
+        <h2>All Medications</h2>
+        <div id="allMeds"></div>
+        
+        <h3>Log Medication</h3>
+        <select id="medSelect">
+            <option value="">Select medication</option>
+        </select>
+        <button onclick="logMedication('taken')">✅ Taken</button>
+        <button onclick="logMedication('missed')">❌ Missed</button>
+    </div>
+
+    <script>
+        const API_URL = 'https://1a5a28n6t2.execute-api.ap-southeast-2.amazonaws.com/prod';
+        
+        // Load medications on page load
+        window.onload = function() {
+            loadMedications();
+        };
+
+        async function loadMedications() {
+            try {
+                const response = await fetch(`${API_URL}/medications?user_id=test_user_123`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    displayMedications(data.medications);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('medications').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loading').innerHTML = 'Error loading medications';
+                console.error('Error:', error);
+            }
+        }
+
+        function displayMedications(medications) {
+            const scheduleDiv = document.getElementById('schedule');
+            const allMedsDiv = document.getElementById('allMeds');
+            const medSelect = document.getElementById('medSelect');
+            
+            scheduleDiv.innerHTML = '';
+            allMedsDiv.innerHTML = '';
+            medSelect.innerHTML = '<option value="">Select medication</option>';
+            
+            medications.forEach(med => {
+                // Add to dropdown
+                medSelect.innerHTML += `<option value="${med.medication_name}">${med.medication_name}</option>`;
+                
+                // Display medication card
+                const medCard = `
+                    <div class="medication">
+                        <h3>${med.medication_name} ${med.dosage}</h3>
+                        <p>🕐 Times: ${med.times.join(', ')}</p>
+                        <p>📅 Days: ${med.days_of_week.join(', ')}</p>
+                        <p>🌐 Timezone: ${med.timezone}</p>
+                    </div>
+                `;
+                allMedsDiv.innerHTML += medCard;
+            });
+        }
+
+        async function logMedication(status) {
+            const medName = document.getElementById('medSelect').value;
+            if (!medName) {
+                alert('Please select a medication');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/logs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: 'test_user_123',
+                        medication_name: medName,
+                        status: status,
+                        confirmation_method: 'web'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert(`✅ Logged ${medName} as ${status}`);
+                }
+            } catch (error) {
+                alert('Error logging medication');
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
