@@ -4,189 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medication Reminder</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .medication { 
-            background: white; 
-            padding: 15px; 
-            margin: 10px 0; 
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-left: 4px solid #007bff;
-        }
-        .taken { border-left-color: #28a745; }
-        .missed { border-left-color: #dc3545; }
-        button { 
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            padding: 10px 15px; 
-            border-radius: 4px; 
-            cursor: pointer;
-            margin: 5px;
-            font-size: 14px;
-        }
-        button:hover { background: #0056b3; }
-        button.taken { background: #28a745; }
-        button.missed { background: #dc3545; }
-        h1 { color: #333; text-align: center; }
-        .time-badge { 
-            background: #007bff; 
-            color: white; 
-            padding: 2px 8px; 
-            border-radius: 12px;
-            font-size: 12px;
-            margin: 0 5px;
-        }
-        #loading { text-align: center; padding: 20px; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💊</text></svg>">
 </head>
 <body>
-    <h1>💊 My Medication Schedule</h1>
-    
-    <div id="loading">Loading medications...</div>
-    
-    <div id="medications" style="display: none;">
-        <h2>Today's Medications</h2>
-        <div id="schedule"></div>
-        
-        <h2>All My Medications</h2>
-        <div id="allMeds"></div>
-        
-        <h3>Quick Log</h3>
-        <select id="medSelect">
-            <option value="">Select medication</option>
-        </select>
-        <button class="taken" onclick="logMedication('taken')">✅ Taken</button>
-        <button class="missed" onclick="logMedication('missed')">❌ Missed</button>
-        
-        <div style="margin-top: 30px; padding: 15px; background: #e9ecef; border-radius: 5px;">
-            <h4>📊 Your Medication Summary</h4>
-            <p>Total Medications: <span id="medCount">0</span></p>
-            <p>User ID: <code>test_user_123</code></p>
-        </div>
-    </div>
+    <div class="container">
+        <header>
+            <h1>💊 Medication Reminder</h1>
+            <p>Never miss your medication again</p>
+        </header>
 
-    <script>
-        const API_URL = 'https://1a5a28n6t2.execute-api.ap-southeast-2.amazonaws.com/prod';
-        
-        // Load medications when page loads
-        window.onload = function() {
-            loadMedications();
-        };
+        <main>
+            <!-- Loading State -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading your medications...</p>
+            </div>
 
-        async function loadMedications() {
-            try {
-                console.log('Loading medications...');
-                const response = await fetch(`${API_URL}/medications?user_id=test_user_123`);
-                const data = await response.json();
-                console.log('API Response:', data);
-                
-                if (data.status === 'success') {
-                    displayMedications(data.medications);
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('medications').style.display = 'block';
-                } else {
-                    document.getElementById('loading').innerHTML = 'Error: ' + (data.error || 'Unknown error');
-                }
-            } catch (error) {
-                document.getElementById('loading').innerHTML = '❌ Error loading medications. Check console for details.';
-                console.error('Error:', error);
-            }
-        }
+            <!-- Main Content -->
+            <div id="content" class="content" style="display: none;">
+                <!-- Today's Medications -->
+                <section class="section">
+                    <h2>📅 Today's Schedule</h2>
+                    <div id="todayMeds" class="medications-grid"></div>
+                </section>
 
-        function displayMedications(medications) {
-            const scheduleDiv = document.getElementById('schedule');
-            const allMedsDiv = document.getElementById('allMeds');
-            const medSelect = document.getElementById('medSelect');
-            const medCount = document.getElementById('medCount');
-            
-            // Update medication count
-            medCount.textContent = medications.length;
-            
-            // Clear existing content
-            scheduleDiv.innerHTML = '';
-            allMedsDiv.innerHTML = '';
-            medSelect.innerHTML = '<option value="">Select medication</option>';
-            
-            if (medications.length === 0) {
-                scheduleDiv.innerHTML = '<p>No medications found.</p>';
-                allMedsDiv.innerHTML = '<p>No medications scheduled.</p>';
-                return;
-            }
-            
-            medications.forEach(med => {
-                // Add to dropdown for quick logging
-                medSelect.innerHTML += `<option value="${med.medication_name}">${med.medication_name} (${med.dosage})</option>`;
-                
-                // Create time badges
-                const timeBadges = med.times.map(time => 
-                    `<span class="time-badge">${time}</span>`
-                ).join('');
-                
-                // Display medication card
-                const medCard = `
-                    <div class="medication">
-                        <h3>${med.medication_name} - ${med.dosage}</h3>
-                        <p>🕐 ${timeBadges}</p>
-                        <p>📅 ${med.days_of_week.join(', ')}</p>
-                        <p>🌐 ${med.timezone}</p>
-                        <div>
-                            <button onclick="logMedicationFor('${med.medication_name}', 'taken')">✅ Taken</button>
-                            <button onclick="logMedicationFor('${med.medication_name}', 'missed')">❌ Missed</button>
+                <!-- All Medications -->
+                <section class="section">
+                    <h2>💊 All Medications</h2>
+                    <div id="allMeds" class="medications-list"></div>
+                </section>
+
+                <!-- Log Medication -->
+                <section class="section">
+                    <h2>📝 Log Medication</h2>
+                    <div class="log-form">
+                        <select id="medSelect" class="select-input">
+                            <option value="">Select medication to log...</option>
+                        </select>
+                        <div class="button-group">
+                            <button class="btn btn-success" onclick="logMedication('taken')">
+                                ✅ Mark as Taken
+                            </button>
+                            <button class="btn btn-danger" onclick="logMedication('missed')">
+                                ❌ Mark as Missed
+                            </button>
                         </div>
                     </div>
-                `;
-                allMedsDiv.innerHTML += medCard;
-            });
-        }
+                </section>
 
-        function logMedicationFor(medName, status) {
-            document.getElementById('medSelect').value = medName;
-            logMedication(status);
-        }
+                <!-- Add New Medication -->
+                <section class="section">
+                    <h2>➕ Add New Medication</h2>
+                    <form id="addMedForm" class="med-form">
+                        <div class="form-group">
+                            <input type="text" id="medName" placeholder="Medication name" required class="text-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="medDosage" placeholder="Dosage (e.g., 10mg)" class="text-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="medTimes" placeholder="Times (e.g., 08:00,20:00)" required class="text-input">
+                            <small>Separate multiple times with commas</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Medication</button>
+                    </form>
+                </section>
+            </div>
 
-        async function logMedication(status) {
-            const medName = document.getElementById('medSelect').value;
-            if (!medName) {
-                alert('Please select a medication first');
-                return;
-            }
+            <!-- Error State -->
+            <div id="error" class="error" style="display: none;">
+                <h3>❌ Unable to load medications</h3>
+                <p>Please check your internet connection and try again.</p>
+                <button class="btn btn-primary" onclick="loadMedications()">Retry</button>
+            </div>
+        </main>
 
-            try {
-                const response = await fetch(`${API_URL}/logs`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        user_id: 'test_user_123',
-                        medication_name: medName,
-                        status: status,
-                        confirmation_method: 'web'
-                    })
-                });
-                
-                const data = await response.json();
-                if (data.status === 'success') {
-                    alert(`✅ Success! Logged ${medName} as ${status}`);
-                } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                }
-            } catch (error) {
-                alert('❌ Network error - check console for details');
-                console.error('Error logging medication:', error);
-            }
-        }
+        <footer>
+            <p>Powered by AWS Lambda & API Gateway</p>
+        </footer>
+    </div>
 
-        // Refresh medications every 30 seconds
-        setInterval(loadMedications, 30000);
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
