@@ -1,4 +1,4 @@
-# 💊 Medication Reminder App
+# 💊 CareBuddy
 
 A modern web application for managing medication schedules, tracking adherence, and receiving reminders. Built with AWS serverless architecture and deployed on GitHub Pages.
 
