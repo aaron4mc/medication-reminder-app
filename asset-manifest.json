@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/medication-reminder-app/static/css/main.60efd0ef.css",
+    "main.js": "/medication-reminder-app/static/js/main.7303a4cb.js",
+    "index.html": "/medication-reminder-app/index.html",
+    "main.60efd0ef.css.map": "/medication-reminder-app/static/css/main.60efd0ef.css.map",
+    "main.7303a4cb.js.map": "/medication-reminder-app/static/js/main.7303a4cb.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.60efd0ef.css",
+    "static/js/main.7303a4cb.js"
+  ]
+}
